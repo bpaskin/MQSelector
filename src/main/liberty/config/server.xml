@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="MQSelector">
+
+    <featureManager>
+        <feature>servlet-6.1</feature>
+        <feature>messaging-3.1</feature>
+        <feature>enterpriseBeansLite-4.0</feature>
+        <feature>mdb-4.0</feature>
+        <feature>connectors-2.1</feature>
+    </featureManager>
+
+    <!-- IBM MQ resource adapter (MQRA), installed in <server>/lib/mqra by the Maven build -->
+    <resourceAdapter id="mqra" location="${server.config.dir}/lib/mqra/wmq.jakarta.jmsra-10.0.1.0.rar"/>
+
+    <!-- Bound to loopback only -->
+    <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="-1"/>
+
+    <!-- IBM MQ connection details -->
+    <variable name="mq.host" defaultValue="YOUR_HOST"/>
+    <variable name="mq.port" defaultValue="1414"/>
+    <variable name="mq.qmgr" defaultValue="QMGR_NAME"/>
+    <variable name="mq.channel" defaultValue="CHANNEL_NAME"/>
+    <variable name="mq.queue" defaultValue="QUEUE_NAME"/>
+
+    <!-- Used by the servlet to put messages on IN.Q -->
+    <jmsConnectionFactory jndiName="jms/MQSelectorCF">
+        <properties.mqra transportType="CLIENT"
+                         hostName="${mq.host}"
+                         port="${mq.port}"
+                         queueManager="${mq.qmgr}"
+                         channel="${mq.channel}"/>
+    </jmsConnectionFactory>
+
+    <jmsQueue id="MQSelectorQueue" jndiName="jms/MQSelectorQueue">
+        <properties.mqra baseQueueName="${mq.queue}"/>
+    </jmsQueue>
+
+    <!-- Used by CheckoutMDB; the message selector lives here -->
+    <jmsActivationSpec id="MQSelector/CheckoutMDB">
+        <properties.mqra transportType="CLIENT"
+                         hostName="${mq.host}"
+                         port="${mq.port}"
+                         queueManager="${mq.qmgr}"
+                         channel="${mq.channel}"
+                         destinationRef="MQSelectorQueue"
+                         messageSelector="host = 'checkout'"/>
+    </jmsActivationSpec>
+
+    <webApplication id="MQSelector" location="MQSelector.war" type="war" contextRoot="/" useJandex="true"/>
+</server>

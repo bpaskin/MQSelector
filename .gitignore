@@ -1,0 +1,21 @@
+# Maven / Liberty build output
+target/
+
+# Secrets and local environment
+.env
+*.env
+*.jks
+*.p12
+*.key
+
+# Logs
+*.log
+
+# IDE and OS files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.DS_Store
